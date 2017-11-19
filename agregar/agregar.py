@@ -1,7 +1,4 @@
 """Agregar
-----------------------------------------------
-A aggregation system that extracts
-information from documents
 """
 
 from pymongo import MongoClient
