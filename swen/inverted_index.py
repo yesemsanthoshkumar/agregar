@@ -10,7 +10,6 @@ class InvertedIndex(object):
 
     def add(self, key, elem):
         """Adds a element to the index at the given key"""
-        print("Appending", elem)
         self.idx[key].append(elem)
 
     def count(self, key):
