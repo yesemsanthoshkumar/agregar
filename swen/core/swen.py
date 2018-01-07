@@ -1,4 +1,4 @@
-"""Swen chat"""
+"""Swen chatbot"""
 
 from flask import Flask, jsonify, request
 

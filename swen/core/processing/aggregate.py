@@ -2,41 +2,47 @@
 """
 
 from pymongo import MongoClient
-from nltk.chunk import ne_chunk
+import en_core_web_sm as core
 
-from preprocess import remove_unwanted_symbols, split_sentences, tag_part_of_speech
-from inverted_index import InvertedIndex
-
+MODEL = core.load()
 CLIENT = MongoClient("mongodb://127.0.0.1")
 
 DB = CLIENT['news']
 
-IV = InvertedIndex()
+class Node():
+    """A node representing a token or phrase"""
+    def __init__(self, word, children):
+        self.word = word
+        self.children = list(children)
+        self.points_to = []
+    def points(self, node):
+        """connects the given node"""
+        self.points_to.append(node)
+    def __repr__(self):
+        if len(list(self.children)) != 0:
+            return "{parent} -->> {children}".format(parent=self.word, children=self.points_to)
+        return "{parent}".format(parent=self.word)
+
+def create_relationship(node):
+    """connect related nodes"""
+    if len(list(node.children)) > 0:
+#         fl.append(node) # Prefix
+        for child in node.children:
+            intermittent_node = Node(child, child.children)
+            path = create_relationship(intermittent_node)
+            if path:
+                node.points(path)
+#         fl.append(node) #Postfix
+        return node
+    else:
+        return node
 
 for col in DB.collection_names():
-    for doc in DB[col].find().limit(5):
-        id = doc['_id']
-        entities = []
-        doc = remove_unwanted_symbols(doc['content'])
-        doc = split_sentences(doc)
-        doc = tag_part_of_speech(doc)
-        for sent in doc:
-            for chunk in ne_chunk(sent):
-                if hasattr(chunk, 'label'):
-                    entities.append(
-                        (
-                            " ".join([
-                                wd
-                                for wd, tag in chunk.leaves()
-                            ]),
-                            chunk.label()
-                        )
-                    )
-                    IV.add(" ".join([
-                        wd
-                        for wd, tag in chunk.leaves()
-                    ]), id)
-        for ent in entities:
-            print(ent[0], ent[1], sep='\t')
-
-print(IV.idx)
+    for doc in DB[col].find().limit(1):
+        parsed = MODEL(doc['content'])
+        ents = [(ent, ent.label_) for ent in parsed.ents]
+        for sent in parsed.sents:
+            print("Sentence: ", sent)
+            root_node = Node(sent.root, sent.root.children)
+            root_node = create_relationship(root_node)
+            print(root_node)
