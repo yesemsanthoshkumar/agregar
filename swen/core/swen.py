@@ -1,27 +1,9 @@
 """Swen chatbot"""
 
-from flask import Flask, jsonify, request
+BOT_MSG = "Hi! I'm Swen. How may I help you?"
+HMN_MSG = None
 
-from processing.message import reply
-
-APP = Flask('SWEN')
-
-@APP.route('/')
-def home():
-    """Homepage"""
-    return jsonify({
-        "status": "success"
-    })
-
-@APP.route('/chat', methods=['POST'])
-def input_message():
-    """Receives input message and sends response message"""
-    response_msg = reply(request.json)
-    return jsonify(response_msg)
-
-if __name__ == '__main__':
-    APP.run(
-        '127.0.0.1',
-        5234,
-        debug=False
-    )
+while HMN_MSG != 'exit':
+    print(BOT_MSG)
+    HMN_MSG = input()
+    print("Message received: ", HMN_MSG)
