@@ -1,8 +1,10 @@
 """Filtering documents basesd on the context"""
 
 from elasticsearch import Elasticsearch
+import spacy
 
 es = Elasticsearch()
+model = spacy.load('en')
 
 def filter_documents(sentence):
     """Filters documents based on the given sentence"""
@@ -13,4 +15,9 @@ def filter_documents(sentence):
             }
         }
     })
-    return results
+    return results['hits']['hits']
+
+def extract_entities(raw_doc):
+    doc = model(raw_doc['content'])
+    return [ent for ent in doc.ents]
+
